@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
@@ -19,7 +18,6 @@ import (
 )
 
 const (
-	addBlockHeaderStmtName             = "add_block_header"
 	setSpecialAccountsStmtName         = "set_special_accounts"
 	upsertAssetStmtName                = "upsert_asset"
 	upsertAccountAssetStmtName         = "upsert_account_asset"
@@ -37,9 +35,6 @@ const (
 )
 
 var statements = map[string]string{
-	addBlockHeaderStmtName: `INSERT INTO block_header
-		(round, realtime, rewardslevel, header)
-		VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`,
 	setSpecialAccountsStmtName: `INSERT INTO metastate (k, v) VALUES ('` +
 		schema.SpecialAccountsMetastateKey +
 		`', $1) ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v`,
@@ -135,13 +130,6 @@ func (w *Writer) Close() {
 	for name := range statements {
 		w.tx.Conn().Deallocate(context.Background(), name)
 	}
-}
-
-func addBlockHeader(blockHeader *bookkeeping.BlockHeader, batch *pgx.Batch) {
-	batch.Queue(
-		addBlockHeaderStmtName,
-		uint64(blockHeader.Round), time.Unix(blockHeader.TimeStamp, 0).UTC(),
-		blockHeader.RewardsLevel, encoding.EncodeBlockHeader(*blockHeader))
 }
 
 func setSpecialAccounts(addresses transactions.SpecialAddresses, batch *pgx.Batch) {
@@ -244,6 +232,7 @@ func writeAssetResource(round basics.Round, resource *ledgercore.AssetResourceRe
 }
 
 func writeAppResource(round basics.Round, resource *ledgercore.AppResourceRecord, batch *pgx.Batch) {
+	fmt.Println("world", resource)
 	if resource.Params.Deleted {
 		batch.Queue(deleteAppStmtName, resource.Aidx, resource.Addr[:], round)
 	} else {
@@ -297,7 +286,6 @@ func writeAccountDeltas(round basics.Round, accountDeltas *ledgercore.AccountDel
 func (w *Writer) AddBlock0(block *bookkeeping.Block) error {
 	var batch pgx.Batch
 
-	addBlockHeader(&block.BlockHeader, &batch)
 	specialAddresses := transactions.SpecialAddresses{
 		FeeSink:     block.FeeSink,
 		RewardsPool: block.RewardsPool,
@@ -327,7 +315,6 @@ func (w *Writer) AddBlock0(block *bookkeeping.Block) error {
 func (w *Writer) AddBlock(block *bookkeeping.Block, modifiedTxns []transactions.SignedTxnInBlock, delta ledgercore.StateDelta) error {
 	var batch pgx.Batch
 
-	addBlockHeader(&block.BlockHeader, &batch)
 	specialAddresses := transactions.SpecialAddresses{
 		FeeSink:     block.FeeSink,
 		RewardsPool: block.RewardsPool,
