@@ -777,37 +777,6 @@ func TestAccountMaxResultsLimit(t *testing.T) {
 	})
 }
 
-func TestBlockNotFound(t *testing.T) {
-	db, shutdownFunc, _, l := setupIdb(t, test.MakeGenesis())
-	defer shutdownFunc()
-	defer l.Close()
-
-	///////////
-	// Given // An empty database.
-	///////////
-
-	//////////
-	// When // We query for a non-existent block.
-	//////////
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetPath("/v2/blocks/:round-number")
-	c.SetParamNames("round-number")
-	c.SetParamValues(strconv.Itoa(100))
-
-	api := testServerImplementation(db)
-	err := api.LookupBlock(c, 100)
-	require.NoError(t, err)
-
-	//////////
-	// Then // A 404 gets returned.
-	//////////
-	require.Equal(t, http.StatusNotFound, rec.Code)
-	require.Contains(t, rec.Body.String(), errLookingUpBlockForRound)
-}
-
 // TestInnerTxn runs queries that return one or more root/inner transactions,
 // and verifies that only a single root transaction is returned.
 func TestInnerTxn(t *testing.T) {
@@ -983,37 +952,6 @@ func TestPagingRootTxnDeduplication(t *testing.T) {
 			}
 		})
 	}
-
-	// Test block endpoint deduplication
-	t.Run("Deduplicate Transactions In Block", func(t *testing.T) {
-		//////////
-		// When // we fetch the block
-		//////////
-		e := echo.New()
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		rec := httptest.NewRecorder()
-		c := e.NewContext(req, rec)
-		c.SetPath("/v2/blocks/")
-
-		// Get first page with limit 1.
-		// Address filter causes results to return newest to oldest.
-		api := testServerImplementation(db)
-		err = api.LookupBlock(c, uint64(block.Round()))
-		require.NoError(t, err)
-
-		//////////
-		// Then // There should be a single transaction which has inner transactions
-		//////////
-		var response generated.BlockResponse
-		require.Equal(t, http.StatusOK, rec.Code)
-		err = json.Decode(rec.Body.Bytes(), &response)
-		require.NoError(t, err)
-
-		require.NotNil(t, response.Transactions)
-		require.Len(t, *response.Transactions, 1)
-		require.NotNil(t, (*response.Transactions)[0])
-		require.Len(t, *(*response.Transactions)[0].InnerTxns, 2)
-	})
 }
 
 func TestKeyregTransactionWithStateProofKeys(t *testing.T) {

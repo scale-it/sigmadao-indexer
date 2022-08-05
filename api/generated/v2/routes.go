@@ -1714,7 +1714,6 @@ func RegisterHandlers(router interface {
 	router.GET("/v2/assets/:asset-id", wrapper.LookupAssetByID, m...)
 	router.GET("/v2/assets/:asset-id/balances", wrapper.LookupAssetBalances, m...)
 	router.GET("/v2/assets/:asset-id/transactions", wrapper.LookupAssetTransactions, m...)
-	router.GET("/v2/blocks/:round-number", wrapper.LookupBlock, m...)
 	router.GET("/v2/transactions", wrapper.SearchForTransactions, m...)
 	router.GET("/v2/transactions/:txid", wrapper.LookupTransaction, m...)
 
