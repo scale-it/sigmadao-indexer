@@ -701,12 +701,6 @@ func (si *ServerImplementation) SearchForAssets(ctx echo.Context, params generat
 	})
 }
 
-// LookupBlock returns the block for a given round number
-// (GET /v2/blocks/{round-number})
-func (si *ServerImplementation) LookupBlock(ctx echo.Context, roundNumber uint64) error {
-	return nil
-}
-
 // LookupTransaction searches for the requested transaction ID.
 func (si *ServerImplementation) LookupTransaction(ctx echo.Context, txid string) error {
 	if err := si.verifyHandler("LookupTransaction", ctx); err != nil {
