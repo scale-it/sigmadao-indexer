@@ -267,7 +267,7 @@ func (db *IndexerDb) LoadGenesis(genesis bookkeeping.Genesis) error {
 			}
 		}
 		setAccountStatementName := "set_account"
-		query := `INSERT INTO account (addr, microalgos, rewardsbase, account_data, rewards_total, created_at, deleted) VALUES ($1, $2, 0, $3, $4, 0, false)`
+		query := `INSERT INTO account (addr, microalgos, rewardsbase, account_data, rewards_total, deleted) VALUES ($1, $2, 0, $3, $4, false)`
 		_, err = tx.Prepare(context.Background(), setAccountStatementName, query)
 		if err != nil {
 			return fmt.Errorf("LoadGenesis() prepare tx err: %w", err)
@@ -1679,7 +1679,7 @@ func (db *IndexerDb) buildAccountQuery(opts idb.AccountQueryOptions, countOnly b
 		whereArgs = append(whereArgs, encoding.Base64(opts.EqualToAuthAddr))
 		partNumber++
 	}
-	query = `SELECT a.addr, a.microalgos, a.rewards_total, a.created_at, a.closed_at, a.deleted, a.rewardsbase, a.keytype, a.account_data FROM account a`
+	query = `SELECT a.addr, a.microalgos, a.rewards_total, a.deleted, a.rewardsbase, a.keytype, a.account_data FROM account a`
 	if opts.HasAssetID != 0 {
 		// inner join requires match, filtering on presence of asset
 		query += " JOIN qasf ON a.addr = qasf.addr"
@@ -1709,7 +1709,7 @@ func (db *IndexerDb) buildAccountQuery(opts idb.AccountQueryOptions, countOnly b
 		if countOnly {
 			selectCols = `count(*) as holding_count`
 		} else {
-			selectCols = `json_agg(aa.assetid) as haid, json_agg(aa.amount) as hamt, json_agg(aa.frozen) as hf, json_agg(aa.created_at) as holding_created_at, json_agg(aa.closed_at) as holding_closed_at, json_agg(aa.deleted) as holding_deleted`
+			selectCols = `json_agg(aa.assetid) as haid, json_agg(aa.amount) as hamt, json_agg(aa.frozen) as hf, json_agg(aa.deleted) as holding_deleted`
 		}
 		query += `, qaa AS (SELECT xa.addr, ` + selectCols + ` FROM account_asset aa JOIN qaccounts xa ON aa.addr = xa.addr` + where + ` GROUP BY 1)`
 	}
@@ -1721,7 +1721,7 @@ func (db *IndexerDb) buildAccountQuery(opts idb.AccountQueryOptions, countOnly b
 		if countOnly {
 			selectCols = `count(*) as asset_count`
 		} else {
-			selectCols = `json_agg(ap.index) as paid, json_agg(ap.params) as pp, json_agg(ap.created_at) as asset_created_at, json_agg(ap.closed_at) as asset_closed_at, json_agg(ap.deleted) as asset_deleted`
+			selectCols = `json_agg(ap.index) as paid, json_agg(ap.params) as pp, json_agg(ap.deleted) as asset_deleted`
 		}
 		query += `, qap AS (SELECT ya.addr, ` + selectCols + ` FROM asset ap JOIN qaccounts ya ON ap.creator_addr = ya.addr` + where + ` GROUP BY 1)`
 	}
@@ -1733,7 +1733,7 @@ func (db *IndexerDb) buildAccountQuery(opts idb.AccountQueryOptions, countOnly b
 		if countOnly {
 			selectCols = `count(*) as app_count`
 		} else {
-			selectCols = `json_agg(app.index) as papps, json_agg(app.params) as ppa, json_agg(app.created_at) as app_created_at, json_agg(app.closed_at) as app_closed_at, json_agg(app.deleted) as app_deleted`
+			selectCols = `json_agg(app.index) as papps, json_agg(app.params) as ppa, json_agg(app.deleted) as app_deleted`
 		}
 		query += `, qapp AS (SELECT app.creator as addr, ` + selectCols + ` FROM app JOIN qaccounts ON qaccounts.addr = app.creator` + where + ` GROUP BY 1)`
 	}
@@ -1745,39 +1745,39 @@ func (db *IndexerDb) buildAccountQuery(opts idb.AccountQueryOptions, countOnly b
 		if countOnly {
 			selectCols = `count(*) as ls_count`
 		} else {
-			selectCols = `json_agg(la.app) as lsapps, json_agg(la.localstate) as lsls, json_agg(la.created_at) as ls_created_at, json_agg(la.closed_at) as ls_closed_at, json_agg(la.deleted) as ls_deleted`
+			selectCols = `json_agg(la.app) as lsapps, json_agg(la.localstate) as lsls, json_agg(la.deleted) as ls_deleted`
 		}
 		query += `, qls AS (SELECT la.addr, ` + selectCols + ` FROM account_app la JOIN qaccounts ON qaccounts.addr = la.addr` + where + ` GROUP BY 1)`
 	}
 
 	// query results
-	query += ` SELECT za.addr, za.microalgos, za.rewards_total, za.created_at, za.closed_at, za.deleted, za.rewardsbase, za.keytype, za.account_data`
+	query += ` SELECT za.addr, za.microalgos, za.rewards_total, za.deleted, za.rewardsbase, za.keytype, za.account_data`
 	if opts.IncludeAssetHoldings {
 		if countOnly {
 			query += `, qaa.holding_count`
 		} else {
-			query += `, qaa.haid, qaa.hamt, qaa.hf, qaa.holding_created_at, qaa.holding_closed_at, qaa.holding_deleted`
+			query += `, qaa.haid, qaa.hamt, qaa.hf, qaa.holding_deleted`
 		}
 	}
 	if opts.IncludeAssetParams {
 		if countOnly {
 			query += `, qap.asset_count`
 		} else {
-			query += `, qap.paid, qap.pp, qap.asset_created_at, qap.asset_closed_at, qap.asset_deleted`
+			query += `, qap.paid, qap.pp, qap.asset_deleted`
 		}
 	}
 	if opts.IncludeAppParams {
 		if countOnly {
 			query += `, qapp.app_count`
 		} else {
-			query += `, qapp.papps, qapp.ppa, qapp.app_created_at, qapp.app_closed_at, qapp.app_deleted`
+			query += `, qapp.papps, qapp.ppa, qapp.app_deleted`
 		}
 	}
 	if opts.IncludeAppLocalState {
 		if countOnly {
 			query += `, qls.ls_count`
 		} else {
-			query += `, qls.lsapps, qls.lsls, qls.ls_created_at, qls.ls_closed_at, qls.ls_deleted`
+			query += `, qls.lsapps, qls.lsls, qls.ls_deleted`
 		}
 	}
 	query += ` FROM qaccounts za`
@@ -1801,7 +1801,7 @@ func (db *IndexerDb) buildAccountQuery(opts idb.AccountQueryOptions, countOnly b
 
 // Assets is part of idb.IndexerDB
 func (db *IndexerDb) Assets(ctx context.Context, filter idb.AssetsQuery) (<-chan idb.AssetRow, uint64) {
-	query := `SELECT index, creator_addr, params, created_at, closed_at, deleted FROM asset a`
+	query := `SELECT index, creator_addr, params, deleted FROM asset a`
 	const maxWhereParts = 14
 	whereParts := make([]string, 0, maxWhereParts)
 	whereArgs := make([]interface{}, 0, maxWhereParts)
@@ -1968,7 +1968,7 @@ func (db *IndexerDb) AssetBalances(ctx context.Context, abq idb.AssetBalanceQuer
 	if !abq.IncludeDeleted {
 		whereParts = append(whereParts, "NOT aa.deleted")
 	}
-	query := `SELECT addr, assetid, amount, frozen, created_at, closed_at, deleted FROM account_asset aa`
+	query := `SELECT addr, assetid, amount, frozen, deleted FROM account_asset aa`
 	if len(whereParts) > 0 {
 		query += " WHERE " + strings.Join(whereParts, " AND ")
 	}
@@ -2056,7 +2056,7 @@ func (db *IndexerDb) yieldAssetBalanceThread(rows pgx.Rows, out chan<- idb.Asset
 func (db *IndexerDb) Applications(ctx context.Context, filter idb.ApplicationQuery) (<-chan idb.ApplicationRow, uint64) {
 	out := make(chan idb.ApplicationRow, 1)
 
-	query := `SELECT index, creator, params, created_at, closed_at, deleted FROM app `
+	query := `SELECT index, creator, params deleted FROM app `
 
 	const maxWhereParts = 4
 	whereParts := make([]string, 0, maxWhereParts)
@@ -2190,7 +2190,7 @@ func (db *IndexerDb) yieldApplicationsThread(rows pgx.Rows, out chan idb.Applica
 func (db *IndexerDb) AppLocalState(ctx context.Context, filter idb.ApplicationQuery) (<-chan idb.AppLocalStateRow, uint64) {
 	out := make(chan idb.AppLocalStateRow, 1)
 
-	query := `SELECT app, addr, localstate, created_at, closed_at, deleted FROM account_app `
+	query := `SELECT app, addr, localstate, deleted FROM account_app `
 
 	const maxWhereParts = 4
 	whereParts := make([]string, 0, maxWhereParts)
