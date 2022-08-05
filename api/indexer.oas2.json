@@ -761,37 +761,6 @@
           }
         }
       }
-    },
-    "/v2/blocks/{round-number}": {
-      "get": {
-        "description": "Lookup block.",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "lookup"
-        ],
-        "operationId": "lookupBlock",
-        "parameters": [
-          {
-            "$ref": "#/parameters/round-number"
-          }
-        ],
-        "responses": {
-          "200": {
-            "$ref": "#/responses/BlockResponse"
-          },
-          "404": {
-            "$ref": "#/responses/ErrorResponse"
-          },
-          "500": {
-            "$ref": "#/responses/ErrorResponse"
-          }
-        }
-      }
     }
   },
   "definitions": {
