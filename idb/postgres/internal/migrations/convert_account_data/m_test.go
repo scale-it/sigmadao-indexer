@@ -26,8 +26,7 @@ func makeAddress(i int) basics.Address {
 }
 
 func insertAccount(t *testing.T, db *pgxpool.Pool, address basics.Address, trimmedAccountData *basics.AccountData) {
-	query := `INSERT INTO account (addr, microalgos, rewardsbase, rewards_total, deleted,
-		created_at, account_data) VALUES ($1, 0, 0, 0, false, 0, $2)`
+	query := `INSERT INTO account (addr, microalgos, rewardsbase, rewards_total, deleted, account_data) VALUES ($1, 0, 0, 0, false, $2)`
 	_, err := db.Exec(
 		context.Background(), query, address[:],
 		encoding.EncodeTrimmedAccountData(*trimmedAccountData))
@@ -36,7 +35,7 @@ func insertAccount(t *testing.T, db *pgxpool.Pool, address basics.Address, trimm
 
 func insertDeletedAccount(t *testing.T, db *pgxpool.Pool, address basics.Address) {
 	query := `INSERT INTO account (addr, microalgos, rewardsbase, rewards_total, deleted,
-		created_at, account_data) VALUES ($1, 0, 0, 0, true, 0, 'null'::jsonb)`
+		account_data) VALUES ($1, 0, 0, 0, true, 'null'::jsonb)`
 	_, err := db.Exec(context.Background(), query, address[:])
 	require.NoError(t, err)
 }
@@ -67,29 +66,28 @@ func checkDeletedAccount(t *testing.T, db *pgxpool.Pool, address basics.Address)
 }
 
 func insertAccountAsset(t *testing.T, db *pgxpool.Pool, address basics.Address, assetid uint64, deleted bool) {
-	query := `INSERT INTO account_asset (addr, assetid, amount, frozen, deleted,
-		created_at) VALUES ($1, $2, 0, false, $3, 0)`
+	query := `INSERT INTO account_asset (addr, assetid, amount, frozen, deleted) VALUES ($1, $2, 0, false, $3)`
 	_, err := db.Exec(context.Background(), query, address[:], assetid, deleted)
 	require.NoError(t, err)
 }
 
 func insertAsset(t *testing.T, db *pgxpool.Pool, assetid uint64, address basics.Address, deleted bool) {
-	query := `INSERT INTO asset (index, creator_addr, params, deleted, created_at)
-		VALUES ($1, $2, 'null'::jsonb, $3, 0)`
+	query := `INSERT INTO asset (index, creator_addr, params, deleted)
+		VALUES ($1, $2, 'null'::jsonb, $3)`
 	_, err := db.Exec(context.Background(), query, assetid, address[:], deleted)
 	require.NoError(t, err)
 }
 
 func insertApp(t *testing.T, db *pgxpool.Pool, appid uint64, address basics.Address, deleted bool) {
-	query := `INSERT INTO app (index, creator, params, deleted, created_at)
-		VALUES ($1, $2, 'null'::jsonb, $3, 0)`
+	query := `INSERT INTO app (index, creator, params, deleted)
+		VALUES ($1, $2, 'null'::jsonb, $3)`
 	_, err := db.Exec(context.Background(), query, appid, address[:], deleted)
 	require.NoError(t, err)
 }
 
 func insertAccountApp(t *testing.T, db *pgxpool.Pool, address basics.Address, appid uint64, deleted bool) {
-	query := `INSERT INTO account_app (addr, app, localstate, deleted, created_at)
-		VALUES ($1, $2, 'null'::jsonb, $3, 0)`
+	query := `INSERT INTO account_app (addr, app, localstate, deleted)
+		VALUES ($1, $2, 'null'::jsonb, $3)`
 	_, err := db.Exec(context.Background(), query, address[:], appid, deleted)
 	require.NoError(t, err)
 }
