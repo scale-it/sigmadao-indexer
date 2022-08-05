@@ -777,14 +777,6 @@ func TestTimeouts(t *testing.T) {
 		callHandler func(ctx echo.Context, si ServerImplementation) error
 	}{
 		{
-			name:      "SearchForTransactions",
-			errString: errTransactionSearch,
-			mockCall:  transactionFunc,
-			callHandler: func(ctx echo.Context, si ServerImplementation) error {
-				return si.SearchForTransactions(ctx, generated.SearchForTransactionsParams{})
-			},
-		},
-		{
 			name:      "LookupAccountTransactions",
 			errString: errTransactionSearch,
 			mockCall:  transactionFunc,
