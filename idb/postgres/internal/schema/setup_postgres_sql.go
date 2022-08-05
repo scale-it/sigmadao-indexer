@@ -16,8 +16,6 @@ CREATE TABLE IF NOT EXISTS account (
   rewardsbase bigint NOT NULL,
   rewards_total bigint NOT NULL,
   deleted bool NOT NULL, -- whether or not it is currently deleted
-  created_at bigint NOT NULL, -- round that the account is first used
-  closed_at bigint, -- round that the account was last closed
   keytype varchar(8), -- "sig", "msig", "lsig", or NULL if unknown
   account_data jsonb NOT NULL -- trimmed ledgercore.AccountData that excludes the fields above; SQL 'NOT NULL' is held though the json string will be "null" iff account is deleted
 );
@@ -29,8 +27,6 @@ CREATE TABLE IF NOT EXISTS account_asset (
   amount numeric(20) NOT NULL, -- need the full 18446744073709551615
   frozen boolean NOT NULL,
   deleted bool NOT NULL, -- whether or not it is currently deleted
-  created_at bigint NOT NULL, -- round that the asset was added to an account
-  closed_at bigint, -- round that the asset was last removed from the account
   PRIMARY KEY (addr, assetid)
 );
 
@@ -45,9 +41,7 @@ CREATE TABLE IF NOT EXISTS asset (
   index bigint PRIMARY KEY,
   creator_addr bytea NOT NULL,
   params jsonb NOT NULL, -- data.basics.AssetParams; json string "null" iff asset is deleted
-  deleted bool NOT NULL, -- whether or not it is currently deleted
-  created_at bigint NOT NULL, -- round that the asset was created
-  closed_at bigint -- round that the asset was closed; cannot be recreated because the index is unique
+  deleted bool NOT NULL -- whether or not it is currently deleted
 );
 
 -- For account lookup
@@ -66,9 +60,9 @@ CREATE TABLE IF NOT EXISTS app (
   index bigint PRIMARY KEY,
   creator bytea NOT NULL, -- account address
   params jsonb NOT NULL, -- json string "null" iff app is deleted
-  deleted bool NOT NULL, -- whether or not it is currently deleted
-  created_at bigint NOT NULL, -- round that the asset was created
-  closed_at bigint -- round that the app was deleted; cannot be recreated because the index is unique
+  dao_name CHAR(255), -- dao name
+  asset_id BIGINT, -- token id
+  deleted bool NOT NULL -- whether or not it is currently deleted
 );
 
 -- For account lookup
@@ -80,8 +74,6 @@ CREATE TABLE IF NOT EXISTS account_app (
   app bigint,
   localstate jsonb NOT NULL, -- json string "null" iff deleted from the account
   deleted bool NOT NULL, -- whether or not it is currently deleted
-  created_at bigint NOT NULL, -- round that the app was added to an account
-  closed_at bigint, -- round that the account_app was last removed from the account
   PRIMARY KEY (addr, app)
 );
 
