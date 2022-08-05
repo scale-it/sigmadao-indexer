@@ -483,7 +483,7 @@ func TestZeroTotalAssetCreate(t *testing.T) {
 func assertAssetDates(t *testing.T, db *pgxpool.Pool, assetID uint64, deleted sql.NullBool, createdAt sql.NullInt64, closedAt sql.NullInt64) {
 	row := db.QueryRow(
 		context.Background(),
-		"SELECT deleted, created_at, closed_at FROM asset WHERE index = $1", int64(assetID))
+		"SELECT deleted FROM asset WHERE index = $1", int64(assetID))
 
 	var retDeleted sql.NullBool
 	var retCreatedAt sql.NullInt64
@@ -499,7 +499,7 @@ func assertAssetDates(t *testing.T, db *pgxpool.Pool, assetID uint64, deleted sq
 func assertAssetHoldingDates(t *testing.T, db *pgxpool.Pool, address basics.Address, assetID uint64, deleted sql.NullBool, createdAt sql.NullInt64, closedAt sql.NullInt64) {
 	row := db.QueryRow(
 		context.Background(),
-		"SELECT deleted, created_at, closed_at FROM account_asset WHERE "+
+		"SELECT deleted FROM account_asset WHERE "+
 			"addr = $1 AND assetid = $2",
 		address[:], assetID)
 
