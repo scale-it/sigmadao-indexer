@@ -216,19 +216,7 @@ func (db *IndexerDb) AddBlock(vb *ledgercore.ValidatedBlock) error {
 		var wg sync.WaitGroup
 		defer wg.Wait()
 
-		var err0 error
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			f := func(tx pgx.Tx) error {
-				err := writer.AddTransactions(&block, block.Payset, tx)
-				if err != nil {
-					return err
-				}
-				return writer.AddTransactionParticipation(&block, tx)
-			}
-			err0 = db.txWithRetry(serializable, f)
-		}()
+		var err0 error = nil
 
 		err = w.AddBlock(&block, block.Payset, vb.Delta())
 		if err != nil {
