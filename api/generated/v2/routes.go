@@ -1418,11 +1418,6 @@ func (w *ServerInterfaceWrapper) LookupAssetTransactions(ctx echo.Context) error
 	return err
 }
 
-// LookupBlock converts echo context to params.
-func (w *ServerInterfaceWrapper) LookupBlock(ctx echo.Context) error {
-	return nil
-}
-
 // SearchForTransactions converts echo context to params.
 func (w *ServerInterfaceWrapper) SearchForTransactions(ctx echo.Context) error {
 
