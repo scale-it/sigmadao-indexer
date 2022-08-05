@@ -777,14 +777,6 @@ func TestTimeouts(t *testing.T) {
 		callHandler func(ctx echo.Context, si ServerImplementation) error
 	}{
 		{
-			name:      "SearchForTransactions",
-			errString: errTransactionSearch,
-			mockCall:  transactionFunc,
-			callHandler: func(ctx echo.Context, si ServerImplementation) error {
-				return si.SearchForTransactions(ctx, generated.SearchForTransactionsParams{})
-			},
-		},
-		{
 			name:      "LookupAccountTransactions",
 			errString: errTransactionSearch,
 			mockCall:  transactionFunc,
@@ -864,14 +856,6 @@ func TestTimeouts(t *testing.T) {
 			mockCall:  balancesFunc,
 			callHandler: func(ctx echo.Context, si ServerImplementation) error {
 				return si.LookupAssetBalances(ctx, 1, generated.LookupAssetBalancesParams{})
-			},
-		},
-		{
-			name:      "LookupBlock",
-			errString: errLookingUpBlockForRound,
-			mockCall:  blockFunc,
-			callHandler: func(ctx echo.Context, si ServerImplementation) error {
-				return si.LookupBlock(ctx, 100)
 			},
 		},
 		{
