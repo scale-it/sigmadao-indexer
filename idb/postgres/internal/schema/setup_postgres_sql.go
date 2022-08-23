@@ -73,6 +73,8 @@ CREATE TABLE IF NOT EXISTS account_app (
   addr bytea,
   app bigint,
   localstate jsonb NOT NULL, -- json string "null" iff deleted from the account
+  voting_start BIGINT, -- voting start round (block height)
+  voting_end BIGINT, -- voting end round (block height)
   deleted bool NOT NULL, -- whether or not it is currently deleted
   PRIMARY KEY (addr, app)
 );
