@@ -249,9 +249,9 @@ func writeAppResource(round basics.Round, resource *ledgercore.AppResourceRecord
 	if resource.Params.Params != nil && resource.Params.Params.ApprovalProgram != nil {
 		b64 := base64.StdEncoding
 		var appHash = b64.EncodeToString([]byte(resource.Params.Params.ApprovalProgram))
-		SigmaDAOApp, err := readSigmaDAOApp()
+		SigmaDAOApp := readSigmaDAOApp()
 		// allow only SigmaDAO app
-		if SigmaDAOApp == appHash && err == nil {
+		if SigmaDAOApp == appHash {
 			daoName := resource.Params.Params.GlobalState[DAOName]
 			assetId := resource.Params.Params.GlobalState[GovTokenId]
 			if resource.Params.Deleted {
