@@ -247,25 +247,6 @@ func writeAssetResource(round basics.Round, resource *ledgercore.AssetResourceRe
 	}
 }
 
-func isDAOProposalQueryInExecution(proposalParams basics.AppLocalState) bool {
-	_, amount_exists := proposalParams.KeyValue[Amount]
-	_, execute_before_exists := proposalParams.KeyValue[ExecuteBefore]
-	_, executed_exists := proposalParams.KeyValue[Executed]
-	_, hash_algo_exists := proposalParams.KeyValue[HashAlgo]
-	_, from_exists := proposalParams.KeyValue[From]
-	_, id_exists := proposalParams.KeyValue[ID]
-	_, name_exists := proposalParams.KeyValue[Name]
-	_, recipient_exists := proposalParams.KeyValue[Recipient]
-	_, type_exists := proposalParams.KeyValue[Type]
-	_, url_exists := proposalParams.KeyValue[URL]
-	_, url_hash_exists := proposalParams.KeyValue[URLHash]
-	_, voting_end_exists := proposalParams.KeyValue[VotingEnd]
-	_, voting_start_exists := proposalParams.KeyValue[VotingStart]
-	return amount_exists && execute_before_exists && executed_exists &&
-		hash_algo_exists && from_exists && id_exists && name_exists && recipient_exists &&
-		type_exists && url_exists && url_hash_exists && voting_end_exists && voting_start_exists
-}
-
 func writeAppResource(round basics.Round, resource *ledgercore.AppResourceRecord, batch *pgx.Batch) {
 	if resource.Params.Params != nil && resource.Params.Params.ApprovalProgram != nil {
 		b64 := base64.StdEncoding
@@ -286,7 +267,7 @@ func writeAppResource(round basics.Round, resource *ledgercore.AppResourceRecord
 		}
 	}
 
-	if resource.State.LocalState != nil && isDAOProposalQueryInExecution(*resource.State.LocalState) {
+	if resource.State.LocalState != nil {
 		voting_start := resource.State.LocalState.KeyValue[VotingStart]
 		voting_end := resource.State.LocalState.KeyValue[VotingEnd]
 		if resource.State.Deleted {
