@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"log"
+	"os"
 	"strconv"
 
 	"github.com/algorand/go-algorand/data/basics"
@@ -50,6 +52,8 @@ const (
 	VotingEnd     = "voting_end"
 	VotingStart   = "voting_start"
 )
+
+var CurrentSigmaDAOApp = ""
 
 var statements = map[string]string{
 	setSpecialAccountsStmtName: `INSERT INTO metastate (k, v) VALUES ('` +
@@ -245,11 +249,27 @@ func writeAssetResource(round basics.Round, resource *ledgercore.AssetResourceRe
 	}
 }
 
+func readSigmaDAOApp(SimgaDAOApp string) string {
+	// if last fetched SimgaDAOApp hash is equal to new SigmaDAO App hash then do not read from file
+	if SimgaDAOApp == CurrentSigmaDAOApp {
+		return CurrentSigmaDAOApp
+	}
+	// read from file only when last fetched SigmaDAOApp is not matching with current SigmaDAOApp
+	// this is needed to ensure changed app hash in future
+	content, err := os.ReadFile("SigmaDAOApp.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	// update current sigmadao app hash with new hash
+	CurrentSigmaDAOApp = string(content)
+	return CurrentSigmaDAOApp
+}
+
 func writeAppResource(round basics.Round, resource *ledgercore.AppResourceRecord, batch *pgx.Batch) {
 	if resource.Params.Params != nil && resource.Params.Params.ApprovalProgram != nil {
 		b64 := base64.StdEncoding
 		var appHash = b64.EncodeToString([]byte(resource.Params.Params.ApprovalProgram))
-		SigmaDAOApp := readSigmaDAOApp()
+		SigmaDAOApp := readSigmaDAOApp(appHash)
 		// allow only SigmaDAO app
 		if SigmaDAOApp == appHash {
 			daoName := resource.Params.Params.GlobalState[DAOName]
