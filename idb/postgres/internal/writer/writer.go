@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"log"
+	"os"
 	"strconv"
 
 	"github.com/algorand/go-algorand/data/basics"
@@ -49,8 +51,9 @@ const (
 	URLHash       = "url_hash"
 	VotingEnd     = "voting_end"
 	VotingStart   = "voting_start"
-	SigmaDAOApp   = "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"
 )
+
+var CurrentSigmaDAOApp = ""
 
 var statements = map[string]string{
 	setSpecialAccountsStmtName: `INSERT INTO metastate (k, v) VALUES ('` +
@@ -246,10 +249,27 @@ func writeAssetResource(round basics.Round, resource *ledgercore.AssetResourceRe
 	}
 }
 
+func readSigmaDAOApp(SimgaDAOApp string) string {
+	// if last fetched SimgaDAOApp hash is equal to new SigmaDAO App hash then do not read from file
+	if SimgaDAOApp == CurrentSigmaDAOApp {
+		return CurrentSigmaDAOApp
+	}
+	// read from file only when last fetched SigmaDAOApp is not matching with current SigmaDAOApp
+	// this is needed to ensure changed app hash in future
+	content, err := os.ReadFile("SigmaDAOApp.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	// update current sigmadao app hash with new hash
+	CurrentSigmaDAOApp = string(content)
+	return CurrentSigmaDAOApp
+}
+
 func writeAppResource(round basics.Round, resource *ledgercore.AppResourceRecord, batch *pgx.Batch) {
 	if resource.Params.Params != nil && resource.Params.Params.ApprovalProgram != nil {
 		b64 := base64.StdEncoding
 		var appHash = b64.EncodeToString([]byte(resource.Params.Params.ApprovalProgram))
+		SigmaDAOApp := readSigmaDAOApp(appHash)
 		// allow only SigmaDAO app
 		if SigmaDAOApp == appHash {
 			daoName := resource.Params.Params.GlobalState[DAOName]
