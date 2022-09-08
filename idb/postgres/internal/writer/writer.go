@@ -12,6 +12,7 @@ import (
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
 	"github.com/algorand/go-algorand/ledger/ledgercore"
+	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/indexer/idb"
 	"github.com/algorand/indexer/idb/postgres/internal/encoding"
 	"github.com/algorand/indexer/idb/postgres/internal/schema"
@@ -167,7 +168,7 @@ func getSigTypeDeltas(payset []transactions.SignedTxnInBlock) (map[basics.Addres
 	res := make(map[basics.Address]sigTypeDelta, len(payset))
 
 	for i := range payset {
-		if payset[i].Txn.RekeyTo == (basics.Address{}) {
+		if payset[i].Txn.RekeyTo == (basics.Address{}) && payset[i].Txn.Type != protocol.StateProofTx {
 			sigtype, err := idb.SignatureType(&payset[i].SignedTxn)
 			if err != nil {
 				return nil, fmt.Errorf("getSigTypeDelta() err: %w", err)
