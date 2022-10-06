@@ -1063,6 +1063,17 @@ type TxType string
 // Txid defines model for txid.
 type Txid string
 
+// AccountsResponse defines model for AccountsResponse.
+type AccountsResponse struct {
+	Accounts []Account `json:"accounts"`
+
+	// Round at which the results were computed.
+	CurrentRound uint64 `json:"current-round"`
+
+	// Used for pagination, when making another request provide this token with the next parameter.
+	NextToken *string `json:"next-token,omitempty"`
+}
+
 // AccountResponse defines model for AccountResponse.
 type AccountResponse struct {
 
@@ -1074,17 +1085,6 @@ type AccountResponse struct {
 
 	// Round at which the results were computed.
 	CurrentRound uint64 `json:"current-round"`
-}
-
-// AccountsResponse defines model for AccountsResponse.
-type AccountsResponse struct {
-	Accounts []Account `json:"accounts"`
-
-	// Round at which the results were computed.
-	CurrentRound uint64 `json:"current-round"`
-
-	// Used for pagination, when making another request provide this token with the next parameter.
-	NextToken *string `json:"next-token,omitempty"`
 }
 
 // ApplicationLocalStatesResponse defines model for ApplicationLocalStatesResponse.

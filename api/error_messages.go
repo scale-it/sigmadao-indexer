@@ -1,12 +1,5 @@
 package api
 
-import (
-	"fmt"
-
-	"github.com/algorand/indexer/idb"
-	"github.com/algorand/indexer/util"
-)
-
 // constant error messages.
 const (
 	errInvalidRoundAndMinMax           = "cannot specify round and min-round/max-round"
@@ -41,16 +34,3 @@ const (
 	errValueExceedingInt64             = "searching by round or application-id or asset-id or filter by value greater than 9223372036854775807 is not supported"
 	errTransactionsLimitReached        = "Max transactions limit exceeded. header-only flag should be enabled"
 )
-
-var errUnknownAddressRole string
-var errUnknownTxType string
-var errUnknownSigType string
-
-func init() {
-	errUnknownAddressRole = fmt.Sprintf(
-		"unknown address role [valid roles: %s]", util.KeysStringBool(addressRoleEnumMap))
-	errUnknownTxType = fmt.Sprintf(
-		"unknown tx-type [valid types: %s]", idb.TxnTypeEnumString)
-	errUnknownSigType = fmt.Sprintf(
-		"unknown sig-type [valid types: %s]", idb.SigTypeEnumString)
-}
