@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime/pprof"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -20,8 +19,6 @@ import (
 	"github.com/algorand/go-algorand/rpcs"
 	"github.com/algorand/go-algorand/util"
 
-	"github.com/algorand/indexer/api"
-	"github.com/algorand/indexer/api/generated/v2"
 	"github.com/algorand/indexer/config"
 	"github.com/algorand/indexer/fetcher"
 	"github.com/algorand/indexer/idb"
@@ -338,9 +335,6 @@ func runDaemon(daemonConfig *daemonConfig) error {
 	fmt.Printf("serving on %s\n", daemonConfig.daemonServerAddr)
 	logger.Infof("serving on %s", daemonConfig.daemonServerAddr)
 
-	options := makeOptions(daemonConfig)
-
-	api.Serve(ctx, daemonConfig.daemonServerAddr, db, bot, logger, options)
 	wg.Wait()
 	return err
 }
@@ -387,71 +381,6 @@ func runBlockImporter(ctx context.Context, cfg *daemonConfig, wg *sync.WaitGroup
 			panic(exit{1})
 		}
 	}
-}
-
-// makeOptions converts CLI options to server options
-func makeOptions(daemonConfig *daemonConfig) (options api.ExtraOptions) {
-	options.DeveloperMode = daemonConfig.developerMode
-	if daemonConfig.tokenString != "" {
-		options.Tokens = append(options.Tokens, daemonConfig.tokenString)
-	}
-	switch strings.ToUpper(daemonConfig.metricsMode) {
-	case "OFF":
-		options.MetricsEndpoint = false
-		options.MetricsEndpointVerbose = false
-	case "ON":
-		options.MetricsEndpoint = true
-		options.MetricsEndpointVerbose = false
-	case "VERBOSE":
-		options.MetricsEndpoint = true
-		options.MetricsEndpointVerbose = true
-
-	}
-	options.WriteTimeout = daemonConfig.writeTimeout
-	options.ReadTimeout = daemonConfig.readTimeout
-
-	options.MaxAPIResourcesPerAccount = uint64(daemonConfig.maxAPIResourcesPerAccount)
-	options.MaxTransactionsLimit = uint64(daemonConfig.maxTransactionsLimit)
-	options.DefaultTransactionsLimit = uint64(daemonConfig.defaultTransactionsLimit)
-	options.MaxAccountsLimit = uint64(daemonConfig.maxAccountsLimit)
-	options.DefaultAccountsLimit = uint64(daemonConfig.defaultAccountsLimit)
-	options.MaxAssetsLimit = uint64(daemonConfig.maxAssetsLimit)
-	options.DefaultAssetsLimit = uint64(daemonConfig.defaultAssetsLimit)
-	options.MaxBalancesLimit = uint64(daemonConfig.maxBalancesLimit)
-	options.DefaultBalancesLimit = uint64(daemonConfig.defaultBalancesLimit)
-	options.MaxApplicationsLimit = uint64(daemonConfig.maxApplicationsLimit)
-	options.DefaultApplicationsLimit = uint64(daemonConfig.defaultApplicationsLimit)
-
-	if daemonConfig.enableAllParameters {
-		options.DisabledMapConfig = api.MakeDisabledMapConfig()
-	} else {
-		options.DisabledMapConfig = api.GetDefaultDisabledMapConfigForPostgres()
-	}
-
-	if daemonConfig.suppliedAPIConfigFile != "" {
-		swag, err := generated.GetSwagger()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to get swagger: %v", err)
-			panic(exit{1})
-		}
-
-		logger.Infof("supplied api configuration file located at: %s", daemonConfig.suppliedAPIConfigFile)
-		potentialDisabledMapConfig, err := api.MakeDisabledMapConfigFromFile(swag, daemonConfig.suppliedAPIConfigFile)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to created disabled map config from file: %v", err)
-			panic(exit{1})
-		}
-
-		if len((*potentialDisabledMapConfig).Data) == 0 {
-			logger.Warnf("All parameters are enabled since the provided parameter configuration file (%s) is empty.", suppliedAPIConfigFile)
-		}
-
-		options.DisabledMapConfig = potentialDisabledMapConfig
-	} else {
-		logger.Infof("Enable all parameters flag is set to: %v", daemonConfig.enableAllParameters)
-	}
-
-	return
 }
 
 // blockHandler creates a handler complying to the fetcher block handler interface. In case of a failure it keeps
