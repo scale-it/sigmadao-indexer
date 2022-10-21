@@ -988,9 +988,6 @@ type TransactionStateProof struct {
 // AccountId defines model for account-id.
 type AccountId string
 
-// Address defines model for address.
-type Address string
-
 // AddressRole defines model for address-role.
 type AddressRole string
 
