@@ -11,7 +11,13 @@
 [![Contribute](https://img.shields.io/badge/contributor-guide-blue?logo=github)](https://github.com/algorand/go-algorand/blob/master/CONTRIBUTING.md)
 </div>
 
-# Algorand Indexer
+# SigmaDAO Indexer
+
+A fork of Algorand Indexer, customized for [SigmaDAO](https://github.com/scale-it/sigmadao), in order to make is faster and smaller:
++ we removed unnecessary tables and records
++ we filter out transactions not related to SimgaDAO
+
+Unfortunately, Algorand Indexer requires an Algoran Archival Node, and we didn't went that deep to remove that dependency.
 
 The Indexer is a standalone service that reads committed blocks from the Algorand blockchain and maintains a database of transactions and accounts that are searchable and indexed.
 
